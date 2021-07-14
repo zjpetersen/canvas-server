@@ -22,7 +22,7 @@ const selectSection = (sectionId, fn) => {
 	if (isNaN(sectionId)) {
 		throw new Error("sectionId must be a number");
 	}
-	conn.query("SELECT * from event_cache WHERE sectionId = " + sectionId, function (err, result) {
+	conn.query("SELECT * from sections WHERE sectionId = " + sectionId, function (err, result) {
 		if (err) {
 			throw new Error(err);
 		} else {
@@ -33,7 +33,7 @@ const selectSection = (sectionId, fn) => {
 }
 
 const selectAllSections = (fn) => {
-	conn.query("SELECT * from event_cache ORDER BY sectionId ASC", function (err, result) {
+	conn.query("SELECT * from sections ORDER BY sectionId ASC", function (err, result) {
 		if (err) {
 			throw new Error(err);
 		} else {
@@ -43,5 +43,45 @@ const selectAllSections = (fn) => {
 	});
 }
 
+const writeSectionPurchasedEvent = (event) => {  
+  const query = "UPDATE sections SET owner = '" + event.returnValues.buyer + "', ask = 0, updatedColor=false, hasOwner=true WHERE sectionId = " + event.returnValues.sectionId + ";";
+  writeToDB(query);
+}
+
+const writeAskUpdatedEvent = (event) => {  
+  const query = "UPDATE sections SET ask = " + event.returnValues.ask + " WHERE sectionId = " + event.returnValues.sectionId + ";";
+  writeToDB(query);
+}
+
+const writeColorBytesUpdatedEvent = (event) => {  
+  const query = "UPDATE sections SET updatedColor=true, color='" + event.returnValues.updatedColor + "' WHERE sectionId = " + event.returnValues.sectionId + ";";
+  writeToDB(query);
+  console.log(query);
+}
+
+//TODO offers
+const writeOffersUpdatedEvent = (event) => {  
+	//Should be an INSERT and a DELETE
+	console.log("NOT IMPLEMENTED");
+//   const query = "UPDATE sections SET owner = '" + event.returnValues.buyer + "', ask = 0, updatedColor=false, hasOwner=true WHERE sectionId = " + event.returnValues.sectionId + ";";
+//   writeToDB(query);
+}
+
+const writeToDB = (query) => {
+  console.log(query);
+  conn.query(query, function (err, result) {
+     if (err) {
+       console.log(err);
+     } else {
+       console.log("Wrote event to the db with values: " + result);
+     }
+  });
+
+}
+
 exports.selectSection = selectSection;
 exports.selectAllSections = selectAllSections;
+exports.writeSectionPurchasedEvent = writeSectionPurchasedEvent;
+exports.writeAskUpdatedEvent = writeAskUpdatedEvent;
+exports.writeColorBytesUpdatedEvent = writeColorBytesUpdatedEvent;
+exports.writeOffersUpdatedEvent = writeOffersUpdatedEvent;
