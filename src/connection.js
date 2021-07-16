@@ -43,6 +43,29 @@ const selectAllSections = (fn) => {
 	});
 }
 
+const selectSectionOffers = (sectionId, fn) => {
+	if (isNaN(sectionId)) {
+		throw new Error("sectionId must be a number");
+	}
+	conn.query("SELECT * from offers WHERE sectionId = " + sectionId, function (err, result) {
+		if (err) {
+			throw new Error(err);
+		} else {
+			fn(result);
+		}
+	});
+}
+
+const selectAllOffers = (fn) => {
+	conn.query("SELECT * from offers ORDER BY sectionId ASC", function (err, result) {
+		if (err) {
+			throw new Error(err);
+		} else {
+			fn(result);
+		}
+	});
+}
+
 const writeSectionPurchasedEvent = (event) => {  
   const query = "UPDATE sections SET owner = '" + event.returnValues.buyer + "', ask = 0, updatedColor=false, hasOwner=true WHERE sectionId = " + event.returnValues.sectionId + ";";
   writeToDB(query);
@@ -59,12 +82,16 @@ const writeColorBytesUpdatedEvent = (event) => {
   console.log(query);
 }
 
-//TODO offers
 const writeOffersUpdatedEvent = (event) => {  
-	//Should be an INSERT and a DELETE
-	console.log("NOT IMPLEMENTED");
-//   const query = "UPDATE sections SET owner = '" + event.returnValues.buyer + "', ask = 0, updatedColor=false, hasOwner=true WHERE sectionId = " + event.returnValues.sectionId + ";";
-//   writeToDB(query);
+	const offer = event.returnValues.offer;
+	//Delete if offer is 0
+	if (offer === 0) {
+		const query = "DELETE FROM offers WHERE sectionId = " + event.returnValues.sectionId + " AND offerer = '" + event.returnValues.offerer + "' AND globalOffer = " + event.returnValues.globalOffer + ";";
+		writeToDB(query);
+	} else {
+		const query = "INSERT INTO offers (sectionId, offerer, offer, globalOffer) VALUES (" + event.returnValues.sectionId + ",'" + event.returnValues.offerer + "', '" + event.returnValues.offer + "'," + event.returnValues.globalOffer + ");";
+		writeToDB(query);
+	}
 }
 
 const writeToDB = (query) => {
@@ -81,6 +108,8 @@ const writeToDB = (query) => {
 
 exports.selectSection = selectSection;
 exports.selectAllSections = selectAllSections;
+exports.selectSectionOffers = selectSectionOffers;
+exports.selectAllOffers = selectAllOffers;
 exports.writeSectionPurchasedEvent = writeSectionPurchasedEvent;
 exports.writeAskUpdatedEvent = writeAskUpdatedEvent;
 exports.writeColorBytesUpdatedEvent = writeColorBytesUpdatedEvent;
