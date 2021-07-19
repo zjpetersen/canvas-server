@@ -66,20 +66,29 @@ const selectAllOffers = (fn) => {
 	});
 }
 
+const selectLatestBlock = (fn) => {
+	conn.query("select blockNum from event_cache ORDER BY blockNum DESC LIMIT 1", function (err, result) {
+		if (err) {
+			console.log(err);
+		} else {
+			fn(result[0].blockNum);
+		}
+	});
+}
+
 const writeSectionPurchasedEvent = (event) => {  
   const query = "UPDATE sections SET owner = '" + event.returnValues.buyer + "', ask = 0, updatedColor=false, hasOwner=true WHERE sectionId = " + event.returnValues.sectionId + ";";
-  writeToDB(query);
+  writeToDB(query, event);
 }
 
 const writeAskUpdatedEvent = (event) => {  
   const query = "UPDATE sections SET ask = " + event.returnValues.ask + " WHERE sectionId = " + event.returnValues.sectionId + ";";
-  writeToDB(query);
+  writeToDB(query, event);
 }
 
 const writeColorBytesUpdatedEvent = (event) => {  
   const query = "UPDATE sections SET updatedColor=true, color='" + event.returnValues.updatedColor + "' WHERE sectionId = " + event.returnValues.sectionId + ";";
-  writeToDB(query);
-  console.log(query);
+  writeToDB(query, event);
 }
 
 const writeOffersUpdatedEvent = (event) => {  
@@ -87,14 +96,14 @@ const writeOffersUpdatedEvent = (event) => {
 	//Delete if offer is 0
 	if (offer === 0) {
 		const query = "DELETE FROM offers WHERE sectionId = " + event.returnValues.sectionId + " AND offerer = '" + event.returnValues.offerer + "' AND globalOffer = " + event.returnValues.globalOffer + ";";
-		writeToDB(query);
+		writeToDB(query, event);
 	} else {
 		const query = "INSERT INTO offers (sectionId, offerer, offer, globalOffer) VALUES (" + event.returnValues.sectionId + ",'" + event.returnValues.offerer + "', '" + event.returnValues.offer + "'," + event.returnValues.globalOffer + ");";
-		writeToDB(query);
+		writeToDB(query, event);
 	}
 }
 
-const writeToDB = (query) => {
+const writeToDB = (query, event) => {
   console.log(query);
   conn.query(query, function (err, result) {
      if (err) {
@@ -104,6 +113,15 @@ const writeToDB = (query) => {
      }
   });
 
+  let eventQuery = "INSERT INTO event_cache (`txHash`, `logIndex`, `blockNum`, `event`, `sectionId`, `address`) VALUES ('" + event.transactionHash + "'," + event.logIndex + "," + event.blockNumber + ",'" + event.event + "'," +  event.returnValues.sectionId + ",'" + event.address + "')"; 
+  console.log(eventQuery);
+  conn.query(eventQuery, function(err, result) {
+	  if (err) {
+		  console.log(err);
+	  } else {
+		  console.log("Wrote event to event cache.");
+	  }
+  })
 }
 
 exports.selectSection = selectSection;
@@ -114,3 +132,4 @@ exports.writeSectionPurchasedEvent = writeSectionPurchasedEvent;
 exports.writeAskUpdatedEvent = writeAskUpdatedEvent;
 exports.writeColorBytesUpdatedEvent = writeColorBytesUpdatedEvent;
 exports.writeOffersUpdatedEvent = writeOffersUpdatedEvent;
+exports.selectLatestBlock = selectLatestBlock;

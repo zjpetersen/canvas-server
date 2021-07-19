@@ -9,15 +9,36 @@ console.log("getting canvas");
 let path = "../canvas/client/src/contracts/Canvas.json";
 
 let abi = JSON.parse(fs.readFileSync(path, 'utf8')).abi;
-let contractAddr = "0x2Bf8A4c6836877Ac145B6f12A23d36578aC08261"; //Can get from truffle migration output
-let addr1 = '0x895Bf38d96C2B5F45e9E8FAB610a4dE0f19D9249';
+let contractAddr = "0xAFDef96c1Ea37874A7C25E7E019757F739dA551D"; //Can get from truffle migration output
+// let addr1 = '0xc47BA58918D4AA2614ce5C052De64f7b3D89F820';
 
 let canvas = new web3.eth.Contract(abi, contractAddr);
 console.log("got canvas!");
 /************/
 
+getLatestEvents("SectionPurchased", conn.writeSectionPurchasedEvent);
+getLatestEvents("AskUpdated", conn.writeAskUpdatedEvent);
+getLatestEvents("ColorBytesUpdated", conn.writeColorBytesUpdatedEvent);
+getLatestEvents("OffersUpdated", conn.writeOffersUpdatedEvent);
 
-//TODO handle events when app is not running, add a starting block?
+function getLatestEvents(name, writeEvent) {
+    conn.selectLatestBlock(function (latestBlock) {
+        canvas.getPastEvents(name, {
+            fromBlock: latestBlock + 1,
+            toBlock: "latest"
+        }, function (err, events) {
+            if (err) {
+                console.log(err);
+            }
+            if (events) {
+                console.log("Got past events for " + name);
+                console.log(events);
+                events.forEach(event => writeEvent(event));
+            }
+        });
+    });
+}
+
 canvas.events.SectionPurchased(function(err, event) {
     if (err) {
         console.log(err);
@@ -53,17 +74,17 @@ canvas.events.OffersUpdated(function(err, event) {
 });
 
 //TODO remove this
-const getSection = (sectionId, fn) => {
-    console.log("getting section: " + sectionId);
-    let sectionMethod = canvas.methods.getSection(sectionId);
-    sectionMethod.call({ from: addr1 }, function (err, result) {
-        if (err) {
-            throw new Error(err);
-        } else {
-            fn(result);
-        }
-    });
-}
+// const getSection = (sectionId, fn) => {
+//     console.log("getting section: " + sectionId);
+//     let sectionMethod = canvas.methods.getSection(sectionId);
+//     sectionMethod.call({ from: addr1 }, function (err, result) {
+//         if (err) {
+//             throw new Error(err);
+//         } else {
+//             fn(result);
+//         }
+//     });
+// }
 
 
-exports.getSection = getSection;
+// exports.getSection = getSection;

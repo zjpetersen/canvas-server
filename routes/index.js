@@ -15,14 +15,16 @@ router.get('/section/:sectionId', function(req, res, next) {
   }
 
   conn.selectSection(sectionId, function(queryResult) {
-    console.log(queryResult)
+    queryResult[0].color = queryResult[0].color.toString('utf8');
     res.json(queryResult);
   });
 });
 
 router.get('/sections', function(req, res, next) {
   conn.selectAllSections(function(queryResult) {
-    console.log(queryResult)
+    for (let i = 0; i < queryResult.length; i++) {
+      queryResult[i].color = queryResult[i].color.toString('utf8');
+    }
     res.json(queryResult);
   });
 });
