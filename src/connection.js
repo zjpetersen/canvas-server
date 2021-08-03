@@ -70,8 +70,8 @@ const selectLatestBlock = (fn) => {
 	conn.query("select blockNum from event_cache ORDER BY blockNum DESC LIMIT 1", function (err, result) {
 		if (err) {
 			console.log(err);
-		} else {
-			fn(result[0].blockNum);
+		} else if (result[0]) {
+				fn(result[0].blockNum);
 		}
 	});
 }
@@ -94,7 +94,7 @@ const writeColorBytesUpdatedEvent = (event) => {
 const writeOffersUpdatedEvent = (event) => {  
 	const offer = event.returnValues.offer;
 	//Delete if offer is 0
-	if (offer === 0) {
+	if (offer === '0') {
 		const query = "DELETE FROM offers WHERE sectionId = " + event.returnValues.sectionId + " AND offerer = '" + event.returnValues.offerer + "' AND globalOffer = " + event.returnValues.globalOffer + ";";
 		writeToDB(query, event);
 	} else {

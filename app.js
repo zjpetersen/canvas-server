@@ -3,6 +3,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var cors = require('cors');
+var path = require('path');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -21,8 +23,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(cors());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
+//TODO: For prod we should serve the React static files generated with npm run build here
+app.use(express.static(path.resolve(__dirname, "../canvas/client/build/")));
+app.get('/test', (req, res) => {
+  res.sendFile(path.join(__dirname, '../canvas/client/build/', 'index.html'));
+});
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
