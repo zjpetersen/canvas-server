@@ -76,18 +76,18 @@ const selectLatestBlock = (fn) => {
 	});
 }
 
-const writeSectionPurchasedEvent = (event) => {  
-  const query = "UPDATE sections SET owner = '" + event.returnValues.buyer + "', ask = 0, updatedColor=false, hasOwner=true WHERE sectionId = " + event.returnValues.sectionId + ";";
+const writeTransferEvent = (event) => {  
+  const query = "UPDATE sections SET owner = '" + event.returnValues.to + "', ask = 0, updatedColor=false, hasOwner=true WHERE sectionId = " + event.returnValues.tokenId + ";";
   writeToDB(query, event);
 }
 
 const writeAskUpdatedEvent = (event) => {  
-  const query = "UPDATE sections SET ask = " + event.returnValues.ask + " WHERE sectionId = " + event.returnValues.sectionId + ";";
+  const query = "UPDATE sections SET ask = " + event.returnValues.ask + " WHERE sectionId = " + event.returnValues.tokenId + ";";
   writeToDB(query, event);
 }
 
 const writeColorBytesUpdatedEvent = (event) => {  
-  const query = "UPDATE sections SET updatedColor=true, color='" + event.returnValues.updatedColor + "' WHERE sectionId = " + event.returnValues.sectionId + ";";
+  const query = "UPDATE sections SET updatedColor=true, color='" + event.returnValues.updatedColor + "' WHERE sectionId = " + event.returnValues.tokenId + ";";
   writeToDB(query, event);
 }
 
@@ -98,7 +98,7 @@ const writeOffersUpdatedEvent = (event) => {
 		const query = "DELETE FROM offers WHERE sectionId = " + event.returnValues.sectionId + " AND offerer = '" + event.returnValues.offerer + "' AND globalOffer = " + event.returnValues.globalOffer + ";";
 		writeToDB(query, event);
 	} else {
-		const query = "INSERT INTO offers (sectionId, offerer, offer, globalOffer) VALUES (" + event.returnValues.sectionId + ",'" + event.returnValues.offerer + "', '" + event.returnValues.offer + "'," + event.returnValues.globalOffer + ");";
+		const query = "INSERT INTO offers (sectionId, offerer, offer, globalOffer) VALUES (" + event.returnValues.tokenId + ",'" + event.returnValues.offerer + "', '" + event.returnValues.offer + "'," + event.returnValues.globalOffer + ");";
 		writeToDB(query, event);
 	}
 }
@@ -113,7 +113,7 @@ const writeToDB = (query, event) => {
      }
   });
 
-  let eventQuery = "INSERT INTO event_cache (`txHash`, `logIndex`, `blockNum`, `event`, `sectionId`, `address`) VALUES ('" + event.transactionHash + "'," + event.logIndex + "," + event.blockNumber + ",'" + event.event + "'," +  event.returnValues.sectionId + ",'" + event.address + "')"; 
+  let eventQuery = "INSERT INTO event_cache (`txHash`, `logIndex`, `blockNum`, `event`, `sectionId`, `address`) VALUES ('" + event.transactionHash + "'," + event.logIndex + "," + event.blockNumber + ",'" + event.event + "'," +  event.returnValues.tokenId + ",'" + event.address + "')"; 
   console.log(eventQuery);
   conn.query(eventQuery, function(err, result) {
 	  if (err) {
@@ -128,7 +128,7 @@ exports.selectSection = selectSection;
 exports.selectAllSections = selectAllSections;
 exports.selectSectionOffers = selectSectionOffers;
 exports.selectAllOffers = selectAllOffers;
-exports.writeSectionPurchasedEvent = writeSectionPurchasedEvent;
+exports.writeTransferEvent = writeTransferEvent;
 exports.writeAskUpdatedEvent = writeAskUpdatedEvent;
 exports.writeColorBytesUpdatedEvent = writeColorBytesUpdatedEvent;
 exports.writeOffersUpdatedEvent = writeOffersUpdatedEvent;
