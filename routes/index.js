@@ -8,20 +8,20 @@ router.get('/', function(req, res, next) {
 });
 
 
-router.get('/section/:sectionId', function(req, res, next) {
-  const sectionId = req.params["sectionId"];
-  if (!sectionId || isNaN(sectionId) || sectionId < 0 || sectionId >= 7056 ) {
-    throw new Error("Invalid section id: " + sectionId);
+router.get('/tile/:tileId', function(req, res, next) {
+  const tileId = req.params["tileId"];
+  if (!tileId || isNaN(tileId) || tileId < 0 || tileId >= 7056 ) {
+    throw new Error("Invalid tile id: " + tileId);
   }
 
-  conn.selectSection(sectionId, function(queryResult) {
+  conn.selectTile(tileId, function(queryResult) {
     queryResult[0].color = queryResult[0].color.toString('utf8');
     res.json(queryResult);
   });
 });
 
-router.get('/sections', function(req, res, next) {
-  conn.selectAllSections(function(queryResult) {
+router.get('/tiles', function(req, res, next) {
+  conn.selectAllTiles(function(queryResult) {
     for (let i = 0; i < queryResult.length; i++) {
       queryResult[i].color = queryResult[i].color.toString('utf8');
     }
@@ -29,13 +29,13 @@ router.get('/sections', function(req, res, next) {
   });
 });
 
-router.get('/offers/:sectionId', function(req, res, next) {
-  const sectionId = req.params["sectionId"];
-  if (!sectionId || isNaN(sectionId) || sectionId < 0 || sectionId >= 7056 ) {
-    throw new Error("Invalid section id: " + sectionId);
+router.get('/offers/:tileId', function(req, res, next) {
+  const tileId = req.params["tileId"];
+  if (!tileId || isNaN(tileId) || tileId < 0 || tileId >= 7056 ) {
+    throw new Error("Invalid tile id: " + tileId);
   }
 
-  conn.selectSectionOffers(sectionId, function(queryResult) {
+  conn.selectTileOffers(tileId, function(queryResult) {
     console.log(queryResult)
     res.json(queryResult);
   });

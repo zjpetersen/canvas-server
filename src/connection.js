@@ -18,11 +18,11 @@ conn.connect(function(err) {
 	console.log("Connected!");
 });
 
-const selectSection = (sectionId, fn) => {
-	if (isNaN(sectionId)) {
-		throw new Error("sectionId must be a number");
+const selectTile = (tileId, fn) => {
+	if (isNaN(tileId)) {
+		throw new Error("tileId must be a number");
 	}
-	conn.query("SELECT * from sections WHERE sectionId = " + sectionId, function (err, result) {
+	conn.query("SELECT * from tiles WHERE tileId = " + tileId, function (err, result) {
 		if (err) {
 			throw new Error(err);
 		} else {
@@ -32,8 +32,8 @@ const selectSection = (sectionId, fn) => {
 	});
 }
 
-const selectAllSections = (fn) => {
-	conn.query("SELECT * from sections ORDER BY sectionId ASC", function (err, result) {
+const selectAllTiles = (fn) => {
+	conn.query("SELECT * from tiles ORDER BY tileId ASC", function (err, result) {
 		if (err) {
 			throw new Error(err);
 		} else {
@@ -43,11 +43,11 @@ const selectAllSections = (fn) => {
 	});
 }
 
-const selectSectionOffers = (sectionId, fn) => {
-	if (isNaN(sectionId)) {
-		throw new Error("sectionId must be a number");
+const selectTileOffers = (tileId, fn) => {
+	if (isNaN(tileId)) {
+		throw new Error("tileId must be a number");
 	}
-	conn.query("SELECT * from offers WHERE sectionId = " + sectionId, function (err, result) {
+	conn.query("SELECT * from offers WHERE tileId = " + tileId, function (err, result) {
 		if (err) {
 			throw new Error(err);
 		} else {
@@ -57,7 +57,7 @@ const selectSectionOffers = (sectionId, fn) => {
 }
 
 const selectAllOffers = (fn) => {
-	conn.query("SELECT * from offers ORDER BY sectionId ASC", function (err, result) {
+	conn.query("SELECT * from offers ORDER BY tileId ASC", function (err, result) {
 		if (err) {
 			throw new Error(err);
 		} else {
@@ -77,17 +77,17 @@ const selectLatestBlock = (fn) => {
 }
 
 const writeTransferEvent = (event) => {  
-  const query = "UPDATE sections SET owner = '" + event.returnValues.to + "', ask = 0, updatedColor=false, hasOwner=true WHERE sectionId = " + event.returnValues.tokenId + ";";
+  const query = "UPDATE tiles SET owner = '" + event.returnValues.to + "', ask = 0, updatedColor=false, hasOwner=true WHERE tileId = " + event.returnValues.tokenId + ";";
   writeToDB(query, event);
 }
 
 const writeAskUpdatedEvent = (event) => {  
-  const query = "UPDATE sections SET ask = " + event.returnValues.ask + " WHERE sectionId = " + event.returnValues.tokenId + ";";
+  const query = "UPDATE tiles SET ask = " + event.returnValues.ask + " WHERE tileId = " + event.returnValues.tokenId + ";";
   writeToDB(query, event);
 }
 
 const writeColorBytesUpdatedEvent = (event) => {  
-  const query = "UPDATE sections SET updatedColor=true, color='" + event.returnValues.updatedColor + "' WHERE sectionId = " + event.returnValues.tokenId + ";";
+  const query = "UPDATE tiles SET updatedColor=true, color='" + event.returnValues.updatedColor + "' WHERE tileId = " + event.returnValues.tokenId + ";";
   writeToDB(query, event);
 }
 
@@ -95,10 +95,10 @@ const writeOffersUpdatedEvent = (event) => {
 	const offer = event.returnValues.offer;
 	//Delete if offer is 0
 	if (offer === '0') {
-		const query = "DELETE FROM offers WHERE sectionId = " + event.returnValues.sectionId + " AND offerer = '" + event.returnValues.offerer + "' AND globalOffer = " + event.returnValues.globalOffer + ";";
+		const query = "DELETE FROM offers WHERE tileId = " + event.returnValues.tileId + " AND offerer = '" + event.returnValues.offerer + "' AND globalOffer = " + event.returnValues.globalOffer + ";";
 		writeToDB(query, event);
 	} else {
-		const query = "INSERT INTO offers (sectionId, offerer, offer, globalOffer) VALUES (" + event.returnValues.tokenId + ",'" + event.returnValues.offerer + "', '" + event.returnValues.offer + "'," + event.returnValues.globalOffer + ");";
+		const query = "INSERT INTO offers (tileId, offerer, offer, globalOffer) VALUES (" + event.returnValues.tokenId + ",'" + event.returnValues.offerer + "', '" + event.returnValues.offer + "'," + event.returnValues.globalOffer + ");";
 		writeToDB(query, event);
 	}
 }
@@ -113,7 +113,7 @@ const writeToDB = (query, event) => {
      }
   });
 
-  let eventQuery = "INSERT INTO event_cache (`txHash`, `logIndex`, `blockNum`, `event`, `sectionId`, `address`) VALUES ('" + event.transactionHash + "'," + event.logIndex + "," + event.blockNumber + ",'" + event.event + "'," +  event.returnValues.tokenId + ",'" + event.address + "')"; 
+  let eventQuery = "INSERT INTO event_cache (`txHash`, `logIndex`, `blockNum`, `event`, `tileId`, `address`) VALUES ('" + event.transactionHash + "'," + event.logIndex + "," + event.blockNumber + ",'" + event.event + "'," +  event.returnValues.tokenId + ",'" + event.address + "')"; 
   console.log(eventQuery);
   conn.query(eventQuery, function(err, result) {
 	  if (err) {
@@ -124,9 +124,9 @@ const writeToDB = (query, event) => {
   })
 }
 
-exports.selectSection = selectSection;
-exports.selectAllSections = selectAllSections;
-exports.selectSectionOffers = selectSectionOffers;
+exports.selectTile = selectTile;
+exports.selectAllTiles = selectAllTiles;
+exports.selectTileOffers = selectTileOffers;
 exports.selectAllOffers = selectAllOffers;
 exports.writeTransferEvent = writeTransferEvent;
 exports.writeAskUpdatedEvent = writeAskUpdatedEvent;
