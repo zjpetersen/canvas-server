@@ -1,5 +1,6 @@
 // import connectionProps from './connectionProps.js';
 const connectionProps = require('./connectionProps.js');
+const sizeOf = require('image-size');
 
 const mysql = require('mysql');  
 let conn = mysql.createConnection({  
@@ -8,6 +9,26 @@ let conn = mysql.createConnection({
 	password: connectionProps.password,  
 	database: connectionProps.database
 });
+// let color = "0x89504e470d0a1a0a0000000d49484452000000100000001008060000001ff3ff61000000017352474200aece1ce90000009749444154388d638cce7bf89f818181e1f8a660067460e9b716ab384c8e81818181099fe6271727c315a203981e265c3610038e6f0a86b8009bed1cba720c0c0c0c785dc1c0c080dd0052008601c8b6c3003e5750d705d86c27e40aeabae0f8a660861f971f615528a39f8b35bd503f16b0b90297edb47101ba2bf0d9cec0c0c0c0842f991202967e6b212ec066c8f14dc1786d87e90100cf0141c9852e14480000000049454e44ae426082";
+// let color = "0x72020000e0a50100100010002000010000006400000000000000000000000000200001010000000010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f2010000faf10500640000000500000016000000072001000000000000000000000000000000da000000192020000000000000001f00000000000000000000000000000000ff0000222034ff000045283cff0000663931ff00008f563bff0000df7126ff0000d9a066ff0000eec39aff0000fbf236ff000099e550ff00006abe30ff000037946eff00004b692fff0000524b24ff0000323c39ff00003f3f74ff0000306082ff00005b6ee1ff0000639bffff00005fcde4ff0000cbdbfcff0000ffffffff00009badb7ff0000847e87ff0000696a6aff0000595652ff000076428aff0000ac3232ff0000d95763ff0000d77bbaff00008f974aff00008a6f30ff6a00000004000100002000000022203445283c6639318f563bdf7126d9a066eec39afbf23699e5506abe3037946e4b692f524b24323c393f3f743060825b6ee1639bff5fcde4cbdbfcffffff9badb7847e87696a6a59565276428aac3232d95763d77bba8f974a8a6f301f0000000420030000000000000000000000ff00000007004c617965722030690000000520000000000000ff0200000000000000000f000f00789c6360c00dd61819fdc7238d575f6656d67f72f493ab17a60f8649d14fae5e647de86c5ae9c5e65662dd4eae5e7475d8f4e2d28f4d1d368cae17973e7ce2a4da89ae97547dc8fa29c100d0521364";
+
+const checkColorValidity = (color) => {
+	color = color.substring(2, color.length);
+	let img = Buffer.from(color, 'hex');
+	result = false;
+	try {
+		const dimensions = sizeOf(img);
+		// console.log(dimensions.width + ", " + dimensions.height);
+		if (dimensions.height == 16 && dimensions.width == 16) {
+			result = true;
+		}
+	} catch (err) {
+		//TODO better error handling
+		console.log("Caught error");
+	}
+	return result;
+}
+
 
 
 conn.connect(function(err) {
@@ -87,8 +108,14 @@ const writeAskUpdatedEvent = (event) => {
 }
 
 const writeColorBytesUpdatedEvent = (event) => {  
-  const query = "UPDATE tiles SET updatedColor=true, color='" + event.returnValues.updatedColor + "' WHERE tileId = " + event.returnValues.tokenId + ";";
-  writeToDB(query, event);
+  let result = checkColorValidity(event.returnValues.updatedColor);
+	let query;
+	if (result) {
+  		query = "UPDATE tiles SET updatedColor=true, invalidColor=false, color='" + event.returnValues.updatedColor + "' WHERE tileId = " + event.returnValues.tokenId + ";";
+	} else {
+  		query = "UPDATE tiles SET updatedColor=true, invalidColor=true, color='" + "0x" + "' WHERE tileId = " + event.returnValues.tokenId + ";";
+	}
+  	writeToDB(query, event);
 }
 
 const writeOffersUpdatedEvent = (event) => {  

@@ -9,21 +9,32 @@ console.log("getting canvas");
 
 let pathMosaic = "../canvas/client/src/contracts/MosaicMarket.json";
 let abiMosaic = JSON.parse(fs.readFileSync(pathMosaic, 'utf8')).abi;
-let mosaicAddr = "0xB04C15261ad404dB6467C3b6C85B5c5b2a5b5eFA"; //Can get from truffle migration output
+let mosaicAddr; //Can get from truffle migration output
 
-let pathTile = "../canvas/client/src/contracts/Tile.json";
+let pathTile = "../canvas/client/src/contracts/MosaicTiles.json";
 let abiTile = JSON.parse(fs.readFileSync(pathTile, 'utf8')).abi;
-let tileAddr = "0x784f747b7a926Ccd874ec00E85E099d4e0D2ef40"; //Can get from truffle migration output
+let tileAddr; //Can get from truffle migration output
 // let addr1 = '0xc47BA58918D4AA2614ce5C052De64f7b3D89F820';
+readContractAddresses();
 
 let canvas = new web3.eth.Contract(abiMosaic, mosaicAddr);
 let tile = new web3.eth.Contract(abiTile, tileAddr);
 console.log("got canvas!");
+
+function readContractAddresses() {
+    let data = fs.readFileSync('src/contractAddresses.txt');
+    let addr = data.toString().split(',');
+    tileAddr = addr[0];
+    mosaicAddr = addr[1];
+    console.log(tileAddr);
+    console.log(mosaicAddr);
+}
+
 /************/
 
 getLatestEventsTile("Transfer", conn.writeTransferEvent);
 getLatestEvents("AskUpdated", conn.writeAskUpdatedEvent);
-getLatestEvents("ColorBytesUpdated", conn.writeColorBytesUpdatedEvent);
+getLatestEventsTile("ColorBytesUpdated", conn.writeColorBytesUpdatedEvent);
 getLatestEvents("OffersUpdated", conn.writeOffersUpdatedEvent);
 
 function getLatestEvents(name, writeEvent) {
@@ -80,7 +91,7 @@ canvas.events.AskUpdated(function(err, event) {
     }
 });
 
-canvas.events.ColorBytesUpdated(function(err, event) {
+tile.events.ColorBytesUpdated(function(err, event) {
     if (err) {
         console.log(err);
     } else {
