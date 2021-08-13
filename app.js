@@ -10,6 +10,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 require('./src/canvasConnection.js')
+require('./src/canvasUtils.js')
 
 var app = express();
 
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/images', express.static(path.resolve(__dirname, "static/")));
 
 //TODO: For prod we should serve the React static files generated with npm run build here
 app.use(express.static(path.resolve(__dirname, "../canvas/client/build/")));

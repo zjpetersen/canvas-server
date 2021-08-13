@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const conn = require('../src/connection.js');
+const canvasUtils = require('../src/canvasUtils.js');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -17,6 +18,30 @@ router.get('/tile/:tileId', function(req, res, next) {
   conn.selectTile(tileId, function(queryResult) {
     queryResult[0].color = queryResult[0].color.toString('utf8');
     res.json(queryResult);
+  });
+});
+
+router.get('/tile/metadata/:tileId', function(req, res, next) {
+  const tileId = req.params["tileId"];
+  if (!tileId || isNaN(tileId) || tileId < 0 || tileId >= 7056 ) {
+    throw new Error("Invalid tile id: " + tileId);
+  }
+
+  let obj = new Object();
+  obj.description =  "Tile for the Mosaic contract, Dismos.";
+  obj.external_url = "localhost:3000/canvas/"; //TODO make it so if we add /<tokenId>/ it will route correctly
+  obj.name  = "Tile " + tileId;
+
+  conn.selectTile(tileId, function(queryResult) {
+    if (!queryResult[0].invalidColor) {
+      let color = queryResult[0].color.toString('utf8');
+	    color =color.substring(2, color.length);
+	    let img = Buffer.from(color, 'hex');
+      obj.image = "localhost:3000/images/image_" + tileId + "." + canvasUtils.getImageDataType(img.toString('base64'));
+    } else {
+      obj.image = "localhost:3000/images/EthereumLogoSmall.png";
+    }
+    res.json(obj);
   });
 });
 

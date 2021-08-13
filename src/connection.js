@@ -1,6 +1,6 @@
 // import connectionProps from './connectionProps.js';
 const connectionProps = require('./connectionProps.js');
-const sizeOf = require('image-size');
+const canvasUtils = require('./canvasUtils.js');
 
 const mysql = require('mysql');  
 let conn = mysql.createConnection({  
@@ -11,23 +11,11 @@ let conn = mysql.createConnection({
 });
 // let color = "0x89504e470d0a1a0a0000000d49484452000000100000001008060000001ff3ff61000000017352474200aece1ce90000009749444154388d638cce7bf89f818181e1f8a660067460e9b716ab384c8e81818181099fe6271727c315a203981e265c3610038e6f0a86b8009bed1cba720c0c0c0c785dc1c0c080dd0052008601c8b6c3003e5750d705d86c27e40aeabae0f8a660861f971f615528a39f8b35bd503f16b0b90297edb47101ba2bf0d9cec0c0c0c0842f991202967e6b212ec066c8f14dc1786d87e90100cf0141c9852e14480000000049454e44ae426082";
 // let color = "0x72020000e0a50100100010002000010000006400000000000000000000000000200001010000000010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f2010000faf10500640000000500000016000000072001000000000000000000000000000000da000000192020000000000000001f00000000000000000000000000000000ff0000222034ff000045283cff0000663931ff00008f563bff0000df7126ff0000d9a066ff0000eec39aff0000fbf236ff000099e550ff00006abe30ff000037946eff00004b692fff0000524b24ff0000323c39ff00003f3f74ff0000306082ff00005b6ee1ff0000639bffff00005fcde4ff0000cbdbfcff0000ffffffff00009badb7ff0000847e87ff0000696a6aff0000595652ff000076428aff0000ac3232ff0000d95763ff0000d77bbaff00008f974aff00008a6f30ff6a00000004000100002000000022203445283c6639318f563bdf7126d9a066eec39afbf23699e5506abe3037946e4b692f524b24323c393f3f743060825b6ee1639bff5fcde4cbdbfcffffff9badb7847e87696a6a59565276428aac3232d95763d77bba8f974a8a6f301f0000000420030000000000000000000000ff00000007004c617965722030690000000520000000000000ff0200000000000000000f000f00789c6360c00dd61819fdc7238d575f6656d67f72f493ab17a60f8649d14fae5e647de86c5ae9c5e65662dd4eae5e7475d8f4e2d28f4d1d368cae17973e7ce2a4da89ae97547dc8fa29c100d0521364";
+// let color2 = "0x89504e470d0a1a0a0000000d49484452000000100000001008060000001ff3ff61000000017352474200aece1ce9000000a949444154388d63b4b72ff9cf400160616060605089e9264bf39d25a510039005908176fd1e0606060686ab8d2e28e2c81632216b26c6252a31dd281631214b1232045d338601f80cc1a619ab01d80cc1a5998181011188b000430043388b5dd99041bb1e55f6e75d3c2e2005c05d802daad8950da1b69dc7f0824a0c1e17a0fb195fec6018802bc07019826200bed0c66508dc00429a7119829217d04d8745152cc0b001464ab3330000634cf8c00b9b9f0000000049454e44ae426082";
 
-const checkColorValidity = (color) => {
-	color = color.substring(2, color.length);
-	let img = Buffer.from(color, 'hex');
-	result = false;
-	try {
-		const dimensions = sizeOf(img);
-		// console.log(dimensions.width + ", " + dimensions.height);
-		if (dimensions.height == 16 && dimensions.width == 16) {
-			result = true;
-		}
-	} catch (err) {
-		//TODO better error handling
-		console.log("Caught error");
-	}
-	return result;
-}
+
+// canvasUtils.checkColorValidity(color2);
+// canvasUtils.storeImage(color, 5401);
 
 
 
@@ -108,14 +96,18 @@ const writeAskUpdatedEvent = (event) => {
 }
 
 const writeColorBytesUpdatedEvent = (event) => {  
-  let result = checkColorValidity(event.returnValues.updatedColor);
+  let result = canvasUtils.checkColorValidity(event.returnValues.updatedColor);
 	let query;
 	if (result) {
-  		query = "UPDATE tiles SET updatedColor=true, invalidColor=false, color='" + event.returnValues.updatedColor + "' WHERE tileId = " + event.returnValues.tokenId + ";";
+		//Stores image in file system, and if successful updates the DB
+		canvasUtils.storeImage(event.returnValues.updatedColor, event.returnValues.tokenId, function() {
+  			query = "UPDATE tiles SET updatedColor=true, invalidColor=false, color='" + event.returnValues.updatedColor + "' WHERE tileId = " + event.returnValues.tokenId + ";";
+  			writeToDB(query, event);
+		});
 	} else {
   		query = "UPDATE tiles SET updatedColor=true, invalidColor=true, color='" + "0x" + "' WHERE tileId = " + event.returnValues.tokenId + ";";
+  		writeToDB(query, event);
 	}
-  	writeToDB(query, event);
 }
 
 const writeOffersUpdatedEvent = (event) => {  

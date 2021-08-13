@@ -2,6 +2,7 @@ const Web3 = require('web3');
 const fs = require('fs');
 const conn = require('./connection.js');
 
+
 /*** Code to load canvas smart contract ***/
 console.log("getting connection");
 let web3 = new Web3(Web3.givenProvider || "ws://localhost:7545");
@@ -33,27 +34,8 @@ function readContractAddresses() {
 /************/
 
 getLatestEventsTile("Transfer", conn.writeTransferEvent);
-getLatestEvents("AskUpdated", conn.writeAskUpdatedEvent);
 getLatestEventsTile("ColorBytesUpdated", conn.writeColorBytesUpdatedEvent);
-getLatestEvents("OffersUpdated", conn.writeOffersUpdatedEvent);
 
-function getLatestEvents(name, writeEvent) {
-    conn.selectLatestBlock(function (latestBlock) {
-        canvas.getPastEvents(name, {
-            fromBlock: latestBlock + 1,
-            toBlock: "latest"
-        }, function (err, events) {
-            if (err) {
-                console.log(err);
-            }
-            if (events) {
-                console.log("Got past events for " + name);
-                console.log(events);
-                events.forEach(event => writeEvent(event));
-            }
-        });
-    });
-}
 
 function getLatestEventsTile(name, writeEvent) {
     conn.selectLatestBlock(function (latestBlock) {
@@ -77,8 +59,6 @@ tile.events.Transfer(function(err, event) {
     if (err) {
         console.log(err);
     } else {
-        // console.log("Got event.");
-        // console.log(event);
         conn.writeTransferEvent(event);
     }
 });
@@ -106,3 +86,20 @@ canvas.events.OffersUpdated(function(err, event) {
         conn.writeOffersUpdatedEvent(event);
     }
 });
+
+// const getTile = (sectionId, fn) => {
+//     let addr1 = "0xBcA5f7e36a74Cc6a5bC1AA30A8Ec8d8E7D54BAC6";
+//     console.log("getting section: " + sectionId);
+//     let sectionMethod = tile.methods.tokenURI(sectionId);
+//     sectionMethod.call({ from: addr1 }, function (err, result) {
+//         if (err) {
+//             throw new Error(err);
+//         } else {
+//             fn(result);
+//         }
+//     });
+// }
+
+// getTile(48, function(result) {
+//     console.log(result);
+// })

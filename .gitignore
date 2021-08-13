@@ -4,3 +4,4 @@ node_modules/
 public/
 *.sql
 src/connectionProps.js
+static/
