@@ -5,3 +5,8 @@ public/
 *.sql
 src/connectionProps.js
 static/
+!build/static/
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
