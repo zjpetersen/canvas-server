@@ -31,12 +31,12 @@ app.use('/images', express.static(path.resolve(__dirname, "static/")));
 
 //TODO: For prod we should serve the React static files generated with npm run build here
 // app.use(express.static(path.resolve(__dirname, "../canvas/client/build/")));
-app.use(express.static(path.resolve(__dirname, "../canvas-server/build/")));
+app.use(express.static(path.resolve(__dirname, "build/")));
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../canvas-server/build/', 'index.html'));
+  res.sendFile(path.join(__dirname, 'build/', 'index.html'));
 });
 app.get('/canvas', (req, res) => {
-  res.sendFile(path.join(__dirname, '../canvas-server/build/', 'index.html'));
+  res.sendFile(path.join(__dirname, 'build/', 'index.html'));
 });
 
 

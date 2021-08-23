@@ -26,10 +26,12 @@ router.get('/tile/metadata/:tileId', function(req, res, next) {
   if (!tileId || isNaN(tileId) || tileId < 0 || tileId >= 7056 ) {
     throw new Error("Invalid tile id: " + tileId);
   }
+  const hostWithPort = process.env.HOST_NAME + ":" + process.env.NODE_PORT;
+  const url = hostWithPort + "/canvas/"; //TODO make it so if we add /<tokenId>/ it will route correctly
 
   let obj = new Object();
   obj.description =  "Tile for the Mosaic contract, Dismos.";
-  obj.external_url = "localhost:3000/canvas/"; //TODO make it so if we add /<tokenId>/ it will route correctly
+  obj.external_url = url; //TODO make it so if we add /<tokenId>/ it will route correctly
   obj.name  = "Tile " + tileId;
 
   conn.selectTile(tileId, function(queryResult) {
@@ -37,9 +39,9 @@ router.get('/tile/metadata/:tileId', function(req, res, next) {
       let color = queryResult[0].color.toString('utf8');
 	    color =color.substring(2, color.length);
 	    let img = Buffer.from(color, 'hex');
-      obj.image = "localhost:3000/images/image_" + tileId + "." + canvasUtils.getImageDataType(img.toString('base64'));
+      obj.image = hostWithPort + "/images/image_" + tileId + "." + canvasUtils.getImageDataType(img.toString('base64'));
     } else {
-      obj.image = "localhost:3000/images/EthereumLogoSmall.png";
+      obj.image = hostWithPort + "/images/EthereumLogoSmall.png";
     }
     res.json(obj);
   });
