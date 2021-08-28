@@ -13,7 +13,7 @@ const checkColorValidity = (color) => {
 		}
 	} catch (err) {
 		//TODO better error handling
-		console.log("Caught error");
+		console.log("Caught error while checking image dimensions and format for: " + color);
 	}
 	return result;
 }

@@ -7,8 +7,8 @@ var cors = require('cors');
 var path = require('path');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 
+require('./src/cache.js')
 require('./src/canvasConnection.js')
 require('./src/canvasUtils.js')
 
@@ -25,8 +25,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors());
-app.use('/api', indexRouter);
-app.use('/users', usersRouter);
 app.use('/images', express.static(path.resolve(__dirname, "static/")));
 
 //TODO: For prod we should serve the React static files generated with npm run build here
@@ -39,7 +37,7 @@ app.get('/canvas', (req, res) => {
   res.sendFile(path.join(__dirname, 'build/', 'index.html'));
 });
 
-
+app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

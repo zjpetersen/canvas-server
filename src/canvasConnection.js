@@ -4,32 +4,28 @@ const conn = require('./connection.js');
 
 
 /*** Code to load canvas smart contract ***/
-console.log("getting connection");
-let web3 = new Web3(Web3.givenProvider || "ws://localhost:7545");
-console.log("getting canvas");
+console.log("getting web3 connection");
+// let web3 = new Web3(Web3.givenProvider || "ws://localhost:7545"); //TODO infura
+let web3;
+if (process.env.DEPLOYMENT_ENV === "prod") {
+    web3 = new Web3("https://mainnet.infura.io/v3" + process.env.INFURA_PROJECT_ID);
+} else if (process.env.DEPLOYMENT_ENV === "test") {
+    web3 = new Web3("https://rinkeby.infura.io/v3/" + process.env.INFURA_PROJECT_ID);
+} else {
+    web3 = new Web3("ws://localhost:7545");
+}
 
-// let pathMosaic = "../canvas/client/src/contracts/MosaicMarket.json";
-// let abiMosaic = JSON.parse(fs.readFileSync(pathMosaic, 'utf8')).abi;
-let mosaicAddr; //Can get from truffle migration output
-
-// let pathTile = "../canvas/client/src/contracts/MosaicTiles.json";
 let pathTile = "MosaicTiles.json";
 let abiTile = JSON.parse(fs.readFileSync(pathTile, 'utf8')).abi;
-let tileAddr; //Can get from truffle migration output
-// let addr1 = '0xc47BA58918D4AA2614ce5C052De64f7b3D89F820';
+let tileAddr; 
 readContractAddresses();
 
-// let canvas = new web3.eth.Contract(abiMosaic, mosaicAddr);
 let tile = new web3.eth.Contract(abiTile, tileAddr);
-console.log("got canvas!");
 
 function readContractAddresses() {
     let data = fs.readFileSync('src/contractAddresses.config');
-    let addr = data.toString().split(',');
-    tileAddr = addr[0];
-    mosaicAddr = addr[1];
-    console.log(tileAddr);
-    console.log(mosaicAddr);
+    let addr = data.toString();
+    tileAddr = addr;
 }
 
 /************/
@@ -64,14 +60,6 @@ tile.events.Transfer(function(err, event) {
     }
 });
 
-// canvas.events.AskUpdated(function(err, event) {
-//     if (err) {
-//         console.log(err);
-//     } else {
-//         conn.writeAskUpdatedEvent(event);
-//     }
-// });
-
 tile.events.ColorBytesUpdated(function(err, event) {
     if (err) {
         console.log(err);
@@ -79,14 +67,6 @@ tile.events.ColorBytesUpdated(function(err, event) {
         conn.writeColorBytesUpdatedEvent(event);
     }
 });
-
-// canvas.events.OffersUpdated(function(err, event) {
-//     if (err) {
-//         console.log(err);
-//     } else {
-//         conn.writeOffersUpdatedEvent(event);
-//     }
-// });
 
 // const getTile = (sectionId, fn) => {
 //     let addr1 = "0xBcA5f7e36a74Cc6a5bC1AA30A8Ec8d8E7D54BAC6";
