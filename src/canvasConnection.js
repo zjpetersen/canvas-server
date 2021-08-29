@@ -36,6 +36,7 @@ function readContractAddresses() {
 
 getLatestEventsTile("Transfer", conn.writeTransferEvent);
 getLatestEventsTile("ColorBytesUpdated", conn.writeColorBytesUpdatedEvent);
+getLatestEventsTile("Reserved", conn.writeReservedEvent);
 
 
 function getLatestEventsTile(name, writeEvent) {
@@ -69,6 +70,14 @@ tile.events.ColorBytesUpdated(function(err, event) {
         console.log(err);
     } else {
         conn.writeColorBytesUpdatedEvent(event);
+    }
+});
+
+tile.events.Reserved(function(err, event) {
+    if (err) {
+        console.log(err);
+    } else {
+        conn.writeReservedEvent(event);
     }
 });
 

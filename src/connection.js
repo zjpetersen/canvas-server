@@ -83,25 +83,37 @@ const addEmail = (email, fn) => {
 
 const writeTransferEvent = (event) => {  
   const query = "UPDATE tiles SET owner = '" + event.returnValues.to + "', ask = 0, updatedColor=false, hasOwner=true WHERE tileId = " + event.returnValues.tokenId + ";";
-  writeToDB(query, event);
+  writeToDB(query);
+  updateEventCache(event, event.returnValues.tokenId);
 }
 
-const writeColorBytesUpdatedEvent = (event) => {  
-  let result = canvasUtils.checkColorValidity(event.returnValues.updatedColor);
+const writeColorBytesUpdatedEvent = (event) => {
+	let result = canvasUtils.checkColorValidity(event.returnValues.updatedColor);
 	let query;
 	if (result) {
 		//Stores image in file system, and if successful updates the DB
-		canvasUtils.storeImage(event.returnValues.updatedColor, event.returnValues.tokenId, function() {
-  			query = "UPDATE tiles SET updatedColor=true, invalidColor=false, color='" + event.returnValues.updatedColor + "' WHERE tileId = " + event.returnValues.tokenId + ";";
-  			writeToDB(query, event);
+		canvasUtils.storeImage(event.returnValues.updatedColor, event.returnValues.tokenId, function () {
+			query = "UPDATE tiles SET updatedColor=true, invalidColor=false, color='" + event.returnValues.updatedColor + "' WHERE tileId = " + event.returnValues.tokenId + ";";
 		});
 	} else {
-  		query = "UPDATE tiles SET updatedColor=true, invalidColor=true, color='" + "0x" + "' WHERE tileId = " + event.returnValues.tokenId + ";";
-  		writeToDB(query, event);
+		query = "UPDATE tiles SET updatedColor=true, invalidColor=true, color='" + "0x" + "' WHERE tileId = " + event.returnValues.tokenId + ";";
 	}
+	writeToDB(query);
+	updateEventCache(event, event.returnValues.tokenId);
+
 }
 
-const writeToDB = (query, event) => {
+const writeReservedEvent = (event) => {  
+	let start = event.returnValues.start;
+	let end = event.returnValues.end;
+	for (let i = start; i <= end; i++) {
+		const query = "UPDATE tiles SET owner = '" + event.returnValues.owner + "', ask = 0, updatedColor=false, hasOwner=true WHERE tileId = " + i + ";";
+		writeToDB(query);
+	}
+	updateEventCache(event, 0);
+}
+
+const writeToDB = (query) => {
   console.log(query);
   conn.query(query, function (err, result) {
      if (err) {
@@ -111,8 +123,10 @@ const writeToDB = (query, event) => {
 	   updateTileCache();
      }
   });
+}
 
-  let eventQuery = "INSERT INTO event_cache (`txHash`, `logIndex`, `blockNum`, `event`, `tileId`, `address`) VALUES ('" + event.transactionHash + "'," + event.logIndex + "," + event.blockNumber + ",'" + event.event + "'," +  event.returnValues.tokenId + ",'" + event.address + "')"; 
+const updateEventCache = (event, tokenId) => {
+  let eventQuery = "INSERT INTO event_cache (`txHash`, `logIndex`, `blockNum`, `event`, `tileId`, `address`) VALUES ('" + event.transactionHash + "'," + event.logIndex + "," + event.blockNumber + ",'" + event.event + "'," + tokenId + ",'" + event.address + "')"; 
   console.log(eventQuery);
   conn.query(eventQuery, function(err, result) {
 	  if (err) {
@@ -138,6 +152,7 @@ updateTileCache();
 exports.selectTile = selectTile;
 exports.selectAllTiles = selectAllTiles;
 exports.writeTransferEvent = writeTransferEvent;
+exports.writeReservedEvent = writeReservedEvent;
 exports.writeColorBytesUpdatedEvent = writeColorBytesUpdatedEvent;
 exports.selectLatestBlock = selectLatestBlock;
 exports.addEmail = addEmail;
