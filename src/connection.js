@@ -56,12 +56,15 @@ const selectAllTiles = (fn) => {
 	});
 }
 
-const selectLatestBlock = (fn) => {
+const selectLatestBlock = (defaultBlock, fn) => {
 	conn.query("select blockNum from event_cache ORDER BY blockNum DESC LIMIT 1", function (err, result) {
+		console.log(result);
 		if (err) {
 			console.log(err);
 		} else if (result[0]) {
-				fn(result[0].blockNum);
+			fn(result[0].blockNum);
+		} else if (result && defaultBlock != 0) {
+			fn(defaultBlock);
 		}
 	});
 }

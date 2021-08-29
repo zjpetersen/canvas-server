@@ -15,17 +15,21 @@ if (process.env.DEPLOYMENT_ENV === "prod") {
     web3 = new Web3("ws://localhost:7545");
 }
 
-let pathTile = "MosaicTiles.json";
+let pathTile = "CryptoCanvas.json";
 let abiTile = JSON.parse(fs.readFileSync(pathTile, 'utf8')).abi;
 let tileAddr; 
+let defaultBlock;
 readContractAddresses();
 
 let tile = new web3.eth.Contract(abiTile, tileAddr);
 
 function readContractAddresses() {
-    let data = fs.readFileSync('src/contractAddresses.config');
-    let addr = data.toString();
-    tileAddr = addr;
+    let data = fs.readFileSync('src/contractInfo.config');
+    let dataArr = data.toString().split(',');
+    tileAddr = dataArr[0];
+    defaultBlock = dataArr[1]-1;
+    console.log(tileAddr);
+    console.log(defaultBlock);
 }
 
 /************/
@@ -35,7 +39,7 @@ getLatestEventsTile("ColorBytesUpdated", conn.writeColorBytesUpdatedEvent);
 
 
 function getLatestEventsTile(name, writeEvent) {
-    conn.selectLatestBlock(function (latestBlock) {
+    conn.selectLatestBlock(defaultBlock, function (latestBlock) {
         tile.getPastEvents(name, {
             fromBlock: latestBlock + 1,
             toBlock: "latest"
