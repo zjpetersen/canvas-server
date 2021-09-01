@@ -103,14 +103,14 @@ const writeColorBytesUpdatedEvent = (event) => {
 
 }
 
-const writeReservedEvent = (event) => {  
-	let start = event.returnValues.start;
-	let end = event.returnValues.end;
+const writeConsecutiveTransferEvent = (event) => {  
+	let start = 0;
+	let end = event.returnValues.toTokenId;
 	for (let i = start; i <= end; i++) {
-		const query = "UPDATE tiles SET owner = '" + event.returnValues.owner + "', ask = 0, updatedColor=false, hasOwner=true WHERE tileId = " + i + ";";
+		const query = "UPDATE tiles SET owner = '" + event.returnValues.toAddress + "', ask = 0, updatedColor=false, hasOwner=true WHERE tileId = " + i + ";";
 		writeToDB(query);
 	}
-	updateEventCache(event, 0);
+	updateEventCache(event, event.returnValues.toTokenId);
 }
 
 const writeToDB = (query) => {
@@ -152,7 +152,7 @@ updateTileCache();
 exports.selectTile = selectTile;
 exports.selectAllTiles = selectAllTiles;
 exports.writeTransferEvent = writeTransferEvent;
-exports.writeReservedEvent = writeReservedEvent;
+exports.writeConsecutiveTransferEvent = writeConsecutiveTransferEvent;
 exports.writeColorBytesUpdatedEvent = writeColorBytesUpdatedEvent;
 exports.selectLatestBlock = selectLatestBlock;
 exports.addEmail = addEmail;
