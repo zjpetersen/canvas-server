@@ -10,8 +10,9 @@ let web3;
 if (process.env.DEPLOYMENT_ENV === "prod") {
     web3 = new Web3("https://mainnet.infura.io/v3" + process.env.INFURA_PROJECT_ID);
 } else if (process.env.DEPLOYMENT_ENV === "test") {
-    web3 = new Web3("https://rinkeby.infura.io/v3/" + process.env.INFURA_PROJECT_ID);
+    web3 = new Web3("wss://rinkeby.infura.io/ws/v3/" + process.env.INFURA_PROJECT_ID);
 } else {
+    // web3 = new Web3("wss://rinkeby.infura.io/ws/v3/" + process.env.INFURA_PROJECT_ID);
     web3 = new Web3("ws://localhost:7545");
 }
 
@@ -24,12 +25,17 @@ readContractAddresses();
 let tile = new web3.eth.Contract(abiTile, tileAddr);
 
 function readContractAddresses() {
-    let data = fs.readFileSync('src/contractInfo.config');
-    let dataArr = data.toString().split(',');
-    tileAddr = dataArr[0];
-    defaultBlock = dataArr[1]-1;
-    console.log(tileAddr);
-    console.log(defaultBlock);
+    if (process.env.DEPLOYMENT_ENV === "prod" || process.env.DEPLOYMENT_ENV === "test") {
+        tileAddr = process.env.CONTRACT_ADDRESS;
+        defaultBlock = 0;
+    } else {
+        let data = fs.readFileSync('src/contractInfo.config');
+        let dataArr = data.toString().split(',');
+        tileAddr = dataArr[0];
+        defaultBlock = dataArr[1] - 1;
+        console.log(tileAddr);
+        console.log(defaultBlock);
+    }
 }
 
 /************/

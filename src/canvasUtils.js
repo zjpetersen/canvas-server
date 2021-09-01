@@ -62,6 +62,7 @@ const storeImage = (color, tileId, fn) => {
             fs.writeFile("static/image_" + tileId + "." + getImageDataType(img.toString('base64')), img, (err) => {
                 if (err) {
                     console.log(err);
+                    fn();
                 } else {
                     console.log("File written successfully");
                     fn();
