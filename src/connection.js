@@ -3,6 +3,7 @@
 const canvasUtils = require('./canvasUtils.js');
 const cache = require('./cache.js');
 let crypto = require('crypto');
+let AWS = require('aws-sdk');
 
 const mysql = require('mysql');  
 
@@ -19,6 +20,8 @@ let conn = mysql.createConnection({
 // canvasUtils.checkColorValidity(color2);
 // canvasUtils.storeImage(color, 5401);
 
+AWS.config.update({region: 'us-east-2'});
+s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
 
 conn.connect(function(err) {
@@ -92,7 +95,7 @@ const writeColorBytesUpdatedEvent = (event) => {
 	let query;
 	if (result) {
 		//Stores image in file system, and if successful updates the DB
-		canvasUtils.storeImage(event.returnValues.updatedColor, event.returnValues.tokenId, function () {
+		canvasUtils.storeImage(event.returnValues.updatedColor, event.returnValues.tokenId, s3, function () {
 			query = "UPDATE tiles SET updatedColor=true, invalidColor=false, color='" + event.returnValues.updatedColor + "' WHERE tileId = " + event.returnValues.tokenId + ";";
 	        writeToDB(query);
 	        updateEventCache(event, event.returnValues.tokenId);

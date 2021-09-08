@@ -10,32 +10,24 @@ let app = express();
 
 app.use(bodyParser.json());
 
-//TODO delete this
-// router.get('/tile/:tileId', function(req, res, next) {
-//   const tileId = req.params["tileId"];
-//   if (!tileId || isNaN(tileId) || tileId < 0 || tileId >= 7056 ) {
-//     res.status(400).send("Invalid tile id: " + tileId);
-//   } else {
-
-
-//     conn.selectTile(tileId, function (queryResult) {
-//       queryResult[0].color = queryResult[0].color.toString('utf8');
-//       res.json(queryResult);
-//     });
-//   }
-// });
-
 router.get('/tile/metadata/:tileId', function(req, res, next) {
   const tileId = req.params["tileId"];
   if (!tileId || isNaN(tileId) || tileId < 0 || tileId >= 7056 ) {
     // throw new Error("Invalid tile id: " + tileId);
     res.status(400).send("Invalid tile id: " + tileId);
   } else {
-    const hostWithPort = process.env.HOST_NAME + ":" + process.env.NODE_PORT;
-    const url = hostWithPort + "/canvas/"; //TODO make it so if we add /<tokenId>/ it will route correctly
+    let baseUrl = process.env.HOST_NAME;
+    if (baseUrl === "localhost") {
+      baseUrl = baseUrl + ":" + process.env.NODE_PORT;
+    }
+    if (!baseUrl.startsWith("http")) {
+      baseUrl = "https://" + baseUrl;
+    }
+    url = baseUrl + "/canvas/"; //TODO make it so if we add /<tokenId>/ it will route correctly
+
 
     let obj = new Object();
-    obj.description = "Tile for the Mosaic contract, Dismos.";
+    obj.description = "Tile " + tileId + " for CryptoCanvas";
     obj.external_url = url; //TODO make it so if we add /<tokenId>/ it will route correctly
     obj.name = "Tile " + tileId;
 
@@ -44,9 +36,9 @@ router.get('/tile/metadata/:tileId', function(req, res, next) {
         let color = queryResult[0].color.toString('utf8');
         color = color.substring(2, color.length);
         let img = Buffer.from(color, 'hex');
-        obj.image = hostWithPort + "/images/image_" + tileId + "." + canvasUtils.getImageDataType(img.toString('base64'));
+        obj.image = "https://elasticbeanstalk-us-east-2-205848871693.s3.us-east-2.amazonaws.com/images/image_" + tileId + "." + canvasUtils.getImageDataType(img.toString('base64'));
       } else {
-        obj.image = hostWithPort + "/images/EthereumLogoSmall.png";
+        obj.image = "https://elasticbeanstalk-us-east-2-205848871693.s3.us-east-2.amazonaws.com/image/ArtworkMissing.png";
       }
       res.json(obj);
     });

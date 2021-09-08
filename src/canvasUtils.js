@@ -52,34 +52,30 @@ const getImageDataType = (base64Color) => {
 }
 
 //Stores image to file system so that OpenSea can fetch them
-const storeImage = (color, tileId, fn) => {
-	color = color.substring(2, color.length);
-	let img = Buffer.from(color, 'hex');
-    unlink(tileId, "png")
-        .then(unlink(tileId, "jpeg"))
-        .then(unlink(tileId, "gif"))
-        .then(
-            fs.writeFile("static/image_" + tileId + "." + getImageDataType(img.toString('base64')), img, (err) => {
-                if (err) {
-                    console.log(err);
-                    fn();
-                } else {
-                    console.log("File written successfully");
-                    fn();
-                }
-            })
-        );
-}
+const storeImage = (color, tileId, s3, fn) => {
+    let isStageOrProd = process.env.DEPLOYMENT_ENV === "prod" || process.env.DEPLOYMENT_ENV === "test";
+    if (!isStageOrProd) { //Only write to s3 if stage or prod
+        fn();
+    } else {
+        color = color.substring(2, color.length);
+        let img = Buffer.from(color, 'hex');
+        let fileName = "image_" + tileId + "." + getImageDataType(img.toString('base64'));
 
-const unlink = (tileId, ext) => {
-    return new Promise(function(x,y) {
-        fs.unlink("static/image_" + tileId + "." + ext, (err) => {
+        var uploadParams = { Bucket: process.env.S3_BUCKET, Key: '', Body: '' };
+        uploadParams.Body = img;
+        uploadParams.Key = "images/" + fileName;
+        uploadParams.ACL = "public-read";
+        // call S3 to upload file to specified bucket
+        s3.upload(uploadParams, function (err, data) {
             if (err) {
-                console.log(err);
+                console.log("Error", err);
+                fn();
+            } if (data) {
+                console.log("Upload Success", data.Location);
+                fn();
             }
-
-        })
-    });
+        });
+    }
 }
 
 exports.checkColorValidity = checkColorValidity;

@@ -7,16 +7,20 @@ const conn = require('./connection.js');
 console.log("getting web3 connection");
 // let web3 = new Web3(Web3.givenProvider || "ws://localhost:7545"); //TODO infura
 let web3;
+let pathTile;
+let isStageOrProd = process.env.DEPLOYMENT_ENV === "prod" || process.env.DEPLOYMENT_ENV === "test";
 if (process.env.DEPLOYMENT_ENV === "prod") {
     web3 = new Web3("https://mainnet.infura.io/v3" + process.env.INFURA_PROJECT_ID);
+    pathTile = "CryptoCanvas.json";
 } else if (process.env.DEPLOYMENT_ENV === "test") {
     web3 = new Web3("wss://rinkeby.infura.io/ws/v3/" + process.env.INFURA_PROJECT_ID);
+    pathTile = "CryptoCanvas.json";
 } else {
     // web3 = new Web3("wss://rinkeby.infura.io/ws/v3/" + process.env.INFURA_PROJECT_ID);
     web3 = new Web3("ws://localhost:7545");
+    pathTile = "CryptoCanvas_local.json";
 }
 
-let pathTile = "CryptoCanvas.json";
 let abiTile = JSON.parse(fs.readFileSync(pathTile, 'utf8')).abi;
 let tileAddr; 
 let defaultBlock;
@@ -25,7 +29,7 @@ readContractAddresses();
 let tile = new web3.eth.Contract(abiTile, tileAddr);
 
 function readContractAddresses() {
-    if (process.env.DEPLOYMENT_ENV === "prod" || process.env.DEPLOYMENT_ENV === "test") {
+    if (isStageOrProd) {
         tileAddr = process.env.CONTRACT_ADDRESS;
         defaultBlock = 0;
     } else {
