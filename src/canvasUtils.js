@@ -1,5 +1,6 @@
 const fs = require('fs');
 const sizeOf = require('image-size');
+const sharp = require('sharp');
 
 //Checks to make sure the image is 16x16 pixels and is a supported image format (png, jpeg, gif)
 const checkColorValidity = (color) => {
@@ -54,27 +55,35 @@ const getImageDataType = (base64Color) => {
 //Stores image to file system so that OpenSea can fetch them
 const storeImage = (color, tileId, s3, fn) => {
     let isStageOrProd = process.env.DEPLOYMENT_ENV === "prod" || process.env.DEPLOYMENT_ENV === "test";
+    // let isStageOrProd = true;
     if (!isStageOrProd) { //Only write to s3 if stage or prod
         fn();
     } else {
         color = color.substring(2, color.length);
         let img = Buffer.from(color, 'hex');
         let fileName = "image_" + tileId + "." + getImageDataType(img.toString('base64'));
-
-        var uploadParams = { Bucket: process.env.S3_BUCKET, Key: '', Body: '' };
-        uploadParams.Body = img;
-        uploadParams.Key = "images/" + fileName;
-        uploadParams.ACL = "public-read";
-        // call S3 to upload file to specified bucket
-        s3.upload(uploadParams, function (err, data) {
-            if (err) {
-                console.log("Error", err);
-                fn();
-            } if (data) {
-                console.log("Upload Success", data.Location);
-                fn();
-            }
-        });
+        
+        sharp(img).resize(336, 336, {  kernel: sharp.kernel.nearest}).toBuffer()
+            .then(function(imgResized) {
+                var uploadParams = { Bucket: process.env.S3_BUCKET, Key: '', Body: '' };
+                uploadParams.Body = imgResized;
+                uploadParams.Key = "images/" + fileName;
+                uploadParams.ACL = "public-read";
+                // call S3 to upload file to specified bucket
+                this.s3.upload(uploadParams, function (err, data) {
+                    if (err) {
+                        console.log("Error", err);
+                        fn();
+                    } if (data) {
+                        console.log("Upload Success", data.Location);
+                        fn();
+                    }
+                });
+            })
+            .catch(err => {
+                console.log("Got error during image resizing");
+                console.log(err);
+            });
     }
 }
 
