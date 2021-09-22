@@ -1,6 +1,6 @@
 {
-  "short_name": "CryptoCanvas",
-  "name": "CryptoCanvas",
+  "short_name": "EtherCanvas",
+  "name": "EtherCanvas",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",
