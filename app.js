@@ -33,7 +33,13 @@ app.use(express.static(path.resolve(__dirname, "build/")));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'build/', 'index.html'));
 });
-app.get('/canvas', (req, res) => {
+app.get('/tile/:tileId', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build/', 'index.html'));
+});
+app.get('/faq', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build/', 'index.html'));
+});
+app.get('/privacy', (req, res) => {
   res.sendFile(path.join(__dirname, 'build/', 'index.html'));
 });
 
