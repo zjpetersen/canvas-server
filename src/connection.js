@@ -23,6 +23,10 @@ let conn = mysql.createConnection({
 AWS.config.update({region: 'us-east-2'});
 s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
+// canvasUtils.storeImage(color, 50, color, function() {
+// 	console.log("Stored the image");
+// });
+
 
 conn.connect(function(err) {
 	if (err) {

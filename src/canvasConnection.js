@@ -8,13 +8,22 @@ console.log("getting web3 connection");
 // let web3 = new Web3(Web3.givenProvider || "ws://localhost:7545"); //TODO infura
 let web3;
 let pathTile;
-let isStageOrProd = process.env.DEPLOYMENT_ENV === "prod" || process.env.DEPLOYMENT_ENV === "test";
+let isStageOrProd = process.env.DEPLOYMENT_ENV === "prod" || process.env.DEPLOYMENT_ENV === "test" || process.env.DEPLOYMENT_ENV === "mumbai" || process.env.DEPLOYMENT_ENV === "polygon";
 if (process.env.DEPLOYMENT_ENV === "prod") {
     web3 = new Web3("https://mainnet.infura.io/v3" + process.env.INFURA_PROJECT_ID);
     pathTile = "CryptoCanvas.json";
 } else if (process.env.DEPLOYMENT_ENV === "test") {
     web3 = new Web3("wss://rinkeby.infura.io/ws/v3/" + process.env.INFURA_PROJECT_ID);
     pathTile = "CryptoCanvas.json";
+} else if (process.env.DEPLOYMENT_ENV === "mumbai") {
+    // web3 = new Web3("https://polygon-mumbai.infura.io/v3/" + process.env.INFURA_PROJECT_ID);
+    web3 = new Web3("wss://speedy-nodes-nyc.moralis.io/" + process.env.MORALIS_PROJECT_ID + "/polygon/mumbai/ws");
+    pathTile = "CryptoCanvas_mumbai.json";
+    console.log("Connecting to Mumbai");
+} else if (process.env.DEPLOYMENT_ENV === "polygon") {
+    // web3 = new Web3("https://polygon-mainnet.infura.io/v3/" + process.env.INFURA_PROJECT_ID);
+    web3 = new Web3("wss://speedy-nodes-nyc.moralis.io/" + process.env.MORALIS_PROJECT_ID + "/polygon/mainnet/ws");
+    pathTile = "CryptoCanvas_polygon.json";
 } else {
     // web3 = new Web3("wss://rinkeby.infura.io/ws/v3/" + process.env.INFURA_PROJECT_ID);
     web3 = new Web3("ws://localhost:7545");
@@ -32,6 +41,8 @@ function readContractAddresses() {
     if (isStageOrProd) {
         tileAddr = process.env.CONTRACT_ADDRESS;
         defaultBlock = 0;
+        console.log("Connected to contract addr: ");
+        console.log(tileAddr);
     } else {
         let data = fs.readFileSync('src/contractInfo.config');
         let dataArr = data.toString().split(',');

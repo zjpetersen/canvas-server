@@ -54,9 +54,9 @@ const getImageDataType = (base64Color) => {
 
 //Stores image to file system so that OpenSea can fetch them
 const storeImage = (color, tileId, s3, fn) => {
-    let isStageOrProd = process.env.DEPLOYMENT_ENV === "prod" || process.env.DEPLOYMENT_ENV === "test";
+    let isProd = process.env.DEPLOYMENT_ENV === "prod" || process.env.DEPLOYMENT_ENV === "polygon";
     // let isStageOrProd = true;
-    if (!isStageOrProd) { //Only write to s3 if stage or prod
+    if (!isProd) { //Only write to s3 if prod
         fn();
     } else {
         color = color.substring(2, color.length);
